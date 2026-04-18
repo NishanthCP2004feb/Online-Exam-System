@@ -24,6 +24,8 @@ Java Servlet/JSP web application for creating exams, attempting timed assessment
 - Java 17+ (tested locally with Java 25)
 - MySQL 8+
 - Servlet container compatible with `javax.servlet` 3.1+, such as Tomcat 8.5 or 9
+- Windows PowerShell
+- XAMPP installed at `C:\xampp` (default used by `run.ps1`)
 
 ## Database Setup
 
@@ -58,27 +60,53 @@ Run from the project root:
 
 This compiles all Java sources into `web/WEB-INF/classes`.
 
-## Run Locally
+## Execute On localhost
 
-For the XAMPP layout available on this machine:
+Run the following from project root in PowerShell:
+
+1. Initialize database schema (first run only):
+
+```powershell
+.\run.ps1 -InitDb
+```
+
+2. Start the app for normal runs:
 
 ```powershell
 .\run.ps1
 ```
 
-This script:
+3. Open in browser:
 
-- compiles the source
-- deploys `web/` into `C:\xampp\tomcat\webapps\examportal`
-- starts MySQL if port `3306` is not already listening
-- starts Tomcat if port `8080` is not already listening
-- verifies `http://localhost:8080/examportal/`
+- `http://localhost:8080/examportal/`
 
-Optional database initialization:
+What `run.ps1` does automatically:
+
+- Compiles Java source using `build.ps1`
+- Creates database `online_exam_portal` if missing
+- Deploys `web/` into `C:\xampp\tomcat\webapps\examportal`
+- Starts MySQL on port `3306` when needed
+- Starts Tomcat on port `8080` when needed
+- Verifies the app URL is returning HTTP 200
+
+If your XAMPP is installed elsewhere, pass the custom path:
 
 ```powershell
-.\run.ps1 -InitDb
+.\run.ps1 -XamppRoot "D:\xampp"
 ```
+
+If your MySQL user/password is different:
+
+```powershell
+.\run.ps1 -DbUser "root" -DbPassword "your_password"
+```
+
+## Quick Troubleshooting (localhost)
+
+- If port `3306` is busy: stop any other MySQL service or update your local MySQL setup.
+- If port `8080` is busy: stop other Tomcat/server processes using that port.
+- If Java is not found: set `JAVA_HOME` and ensure `java` is on `PATH`.
+- If login fails after first run: re-run `./run.ps1 -InitDb` to ensure schema/sample data is present.
 
 ## Deploy
 
