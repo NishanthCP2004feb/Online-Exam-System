@@ -1,0 +1,11 @@
+# Build/cache artifacts
+.build-cache/
+
+# Compiled Java classes
+**/*.class
+web/WEB-INF/classes/
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
