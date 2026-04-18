@@ -10,12 +10,16 @@ import java.util.List;
 
 public class UserDAO {
 
+    private static final String DEFAULT_ADMIN_PASSWORD_HASH = "pbkdf2$65536$35wlarOHDdjk791ouO8rsg==$JE4+lkOoI6yk8vHUY6mK9RoqrfNr2IwC5pb+gAnNidg=";
+    private static final String DEFAULT_STUDENT_PASSWORD_HASH = "pbkdf2$65536$CTZ5H/9dyqGFv8I67zSeGA==$WZtFr0dzQPZwg5UxiBb0LRTI3ee42Hl2dqBdG6bfLPI=";
+
     public boolean register(User user) {
         String sql = "INSERT INTO users (username, full_name, email, password, role) VALUES (?, ?, ?, ?, ?)";
         Connection conn = null;
         PreparedStatement ps = null;
         try {
             conn = DBConnection.getConnection();
+            ensureUsersTableAndDefaults(conn);
             ps = conn.prepareStatement(sql);
             ps.setString(1, user.getUsername());
             ps.setString(2, user.getFullName());
@@ -39,6 +43,7 @@ public class UserDAO {
         ResultSet rs = null;
         try {
             conn = DBConnection.getConnection();
+            ensureUsersTableAndDefaults(conn);
             ps = conn.prepareStatement(sql);
             ps.setString(1, username);
             rs = ps.executeQuery();
@@ -195,6 +200,40 @@ public class UserDAO {
             ps.executeUpdate();
         } finally {
             try { if (ps != null) ps.close(); } catch (SQLException e) { e.printStackTrace(); }
+        }
+    }
+
+    private void ensureUsersTableAndDefaults(Connection conn) throws SQLException {
+        Statement statement = null;
+        PreparedStatement countPs = null;
+        ResultSet countRs = null;
+        try {
+            statement = conn.createStatement();
+            statement.execute(
+                "CREATE TABLE IF NOT EXISTS users ("
+                    + "id INT AUTO_INCREMENT PRIMARY KEY,"
+                    + "username VARCHAR(50) UNIQUE NOT NULL,"
+                    + "full_name VARCHAR(100) NOT NULL,"
+                    + "email VARCHAR(100) UNIQUE NOT NULL,"
+                    + "password VARCHAR(255) NOT NULL,"
+                    + "role ENUM('student', 'admin') DEFAULT 'student',"
+                    + "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+                + ")"
+            );
+
+            countPs = conn.prepareStatement("SELECT COUNT(*) FROM users");
+            countRs = countPs.executeQuery();
+            if (countRs.next() && countRs.getInt(1) == 0) {
+                statement.executeUpdate(
+                    "INSERT INTO users (username, full_name, email, password, role) VALUES "
+                        + "('admin', 'System Administrator', 'admin@examportal.com', '" + DEFAULT_ADMIN_PASSWORD_HASH + "', 'admin'),"
+                        + "('student1', 'Rahul Sharma', 'rahul@student.com', '" + DEFAULT_STUDENT_PASSWORD_HASH + "', 'student')"
+                );
+            }
+        } finally {
+            try { if (countRs != null) countRs.close(); } catch (SQLException e) { e.printStackTrace(); }
+            try { if (countPs != null) countPs.close(); } catch (SQLException e) { e.printStackTrace(); }
+            try { if (statement != null) statement.close(); } catch (SQLException e) { e.printStackTrace(); }
         }
     }
 }
