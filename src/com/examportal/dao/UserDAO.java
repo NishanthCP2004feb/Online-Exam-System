@@ -59,6 +59,7 @@ public class UserDAO {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            throw new IllegalStateException("Database connection failed.", e);
         } finally {
             try { if (rs != null) rs.close(); } catch (SQLException e) { e.printStackTrace(); }
             try { if (ps != null) ps.close(); } catch (SQLException e) { e.printStackTrace(); }
@@ -205,8 +206,6 @@ public class UserDAO {
 
     private void ensureUsersTableAndDefaults(Connection conn) throws SQLException {
         Statement statement = null;
-        PreparedStatement countPs = null;
-        ResultSet countRs = null;
         try {
             statement = conn.createStatement();
             statement.execute(
@@ -221,18 +220,16 @@ public class UserDAO {
                 + ")"
             );
 
-            countPs = conn.prepareStatement("SELECT COUNT(*) FROM users");
-            countRs = countPs.executeQuery();
-            if (countRs.next() && countRs.getInt(1) == 0) {
-                statement.executeUpdate(
-                    "INSERT INTO users (username, full_name, email, password, role) VALUES "
-                        + "('admin', 'System Administrator', 'admin@examportal.com', '" + DEFAULT_ADMIN_PASSWORD_HASH + "', 'admin'),"
-                        + "('student1', 'Rahul Sharma', 'rahul@student.com', '" + DEFAULT_STUDENT_PASSWORD_HASH + "', 'student')"
-                );
-            }
+            statement.executeUpdate(
+                "INSERT INTO users (username, full_name, email, password, role) VALUES "
+                    + "('admin', 'System Administrator', 'admin@examportal.com', '" + DEFAULT_ADMIN_PASSWORD_HASH + "', 'admin'),"
+                    + "('student1', 'Rahul Sharma', 'rahul@student.com', '" + DEFAULT_STUDENT_PASSWORD_HASH + "', 'student') "
+                    + "ON DUPLICATE KEY UPDATE "
+                    + "full_name = VALUES(full_name), "
+                    + "password = VALUES(password), "
+                    + "role = VALUES(role)"
+            );
         } finally {
-            try { if (countRs != null) countRs.close(); } catch (SQLException e) { e.printStackTrace(); }
-            try { if (countPs != null) countPs.close(); } catch (SQLException e) { e.printStackTrace(); }
             try { if (statement != null) statement.close(); } catch (SQLException e) { e.printStackTrace(); }
         }
     }

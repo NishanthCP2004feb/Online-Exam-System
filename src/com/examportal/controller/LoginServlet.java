@@ -61,7 +61,14 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
-        User user = userDAO.login(username.trim(), password);
+        User user;
+        try {
+            user = userDAO.login(username.trim(), password);
+        } catch (IllegalStateException ex) {
+            request.setAttribute("error", "Database connection failed. Verify Render database environment variables.");
+            forwardToLoginPage(request, response);
+            return;
+        }
 
         if (user != null) {
             if (!expectedRole.equalsIgnoreCase(user.getRole())) {
