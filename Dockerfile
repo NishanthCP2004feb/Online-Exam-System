@@ -4,14 +4,14 @@ WORKDIR /usr/local/tomcat
 
 # Copy app sources and web assets.
 COPY src /tmp/src
-COPY web /usr/local/tomcat/webapps/examportal
+COPY web /usr/local/tomcat/webapps/ROOT
 
 # Compile Java sources into WEB-INF/classes.
-RUN mkdir -p /usr/local/tomcat/webapps/examportal/WEB-INF/classes \
+RUN mkdir -p /usr/local/tomcat/webapps/ROOT/WEB-INF/classes \
     && find /tmp/src -name "*.java" > /tmp/sources.txt \
     && javac -encoding UTF-8 \
-       -cp "lib/servlet-api.jar:webapps/examportal/WEB-INF/lib/mysql-connector-j-8.4.0.jar" \
-       -d webapps/examportal/WEB-INF/classes \
+         -cp "lib/servlet-api.jar:webapps/ROOT/WEB-INF/lib/mysql-connector-j-8.4.0.jar" \
+         -d webapps/ROOT/WEB-INF/classes \
        @/tmp/sources.txt \
     && rm -rf /tmp/src /tmp/sources.txt
 
