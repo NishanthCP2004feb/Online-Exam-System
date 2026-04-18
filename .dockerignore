@@ -1,0 +1,6 @@
+.git
+.github
+.build-cache
+.vscode
+
+web/WEB-INF/classes
